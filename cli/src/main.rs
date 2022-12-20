@@ -222,6 +222,9 @@ pub enum DIDKit {
         #[clap(flatten)]
         resolver_options: ResolverOptions,
     },
+
+    VCDeriveCredential,
+
     /// Verify Credential
     VCVerifyCredential {
         #[clap(flatten)]
@@ -856,6 +859,13 @@ fn main() -> AResult<()> {
                     panic!("Unknown proof format: {:?}", proof_format);
                 }
             }
+        }
+
+        DIDKit::VCDeriveCredential => {
+            let credential_reader = BufReader::new(stdin());
+            let mut credential: VerifiableCredential =
+                serde_json::from_reader(credential_reader).unwrap();
+            println!("{:?}", &credential);
         }
 
         DIDKit::VCVerifyCredential {
