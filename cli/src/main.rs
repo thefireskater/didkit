@@ -818,7 +818,9 @@ fn main() -> AResult<()> {
         } => {
             let resolver = resolver_options.to_resolver();
             let mut context_loader = ssi::jsonld::ContextLoader::default();
-            let credential_reader = BufReader::new(stdin());
+            let f = File::open("/Users/darwinlo/spruce/workspace/jane-doe-unsigned-vc.json")?;
+            let credential_reader = BufReader::new(f);
+            //let credential_reader = BufReader::new(stdin());
             let mut credential: VerifiableCredential =
                 serde_json::from_reader(credential_reader).unwrap();
             let proof_format = proof_options.proof_format.clone();
@@ -862,10 +864,22 @@ fn main() -> AResult<()> {
         }
 
         DIDKit::VCDeriveCredential => {
+            //let f = File::open("/Users/darwinlo/spruce/workspace/unsigned-vc.json")?;
+            //let credential_reader = BufReader::new(f);
             let credential_reader = BufReader::new(stdin());
             let mut credential: VerifiableCredential =
                 serde_json::from_reader(credential_reader).unwrap();
-            println!("{:?}", &credential);
+            let mut context_loader = ssi::jsonld::ContextLoader::default();
+
+            let selectors = vec!["familyName"];
+
+            let derived_credential = rt.block_on(ssi::vc::derive_credential(
+                    &credential,
+                    &selectors
+            ));
+
+            let stdout_writer = BufWriter::new(stdout());
+            serde_json::to_writer(stdout_writer, &derived_credential).unwrap();
         }
 
         DIDKit::VCVerifyCredential {
